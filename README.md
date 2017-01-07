@@ -2,6 +2,12 @@
 
 GA Universal UTM cookies
 
+## Update: 2017-01-07
+$.cookie is replaced with basic getCookie, setCookie functions.
+Incase of reading the cookie values through the subdomains, added a domain variable to the updateCookie function. 
+Added a subdomain variable if subdomain referral traffic needs to be excluded.
+
+
 ## Problem
 Some companies rely on the UTMZ cookies created by Google Analytics to retrieve informations about the lead.
 The new Google Analytics Universal no longer stores these cookies on the user's browser.
