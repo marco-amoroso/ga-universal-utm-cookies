@@ -1,6 +1,15 @@
 /*global jQuery, document, window*/
 
 /**
+* Fork notes 2017-01-07: 
+* $.cookie is depreciated so I replaced it with basic getCookie, setCookie functions.
+* Incase of reading the cookie values through the subdomains, added a domain variable to the updateCookie function. 
+* In my case I needed to set the cookie at toyota.com.tr then read it to pass along to CRM in turkiye.toyota.com.tr
+* 
+*/
+
+
+/**
  * Functionality to replace the __UTMZ Cookie, previously built by GA
  * Why? We need the 'utm_source' value to be available in the /redirect pages
  * so it can be sent (along with Niche and Product name) to the hasOffers system
@@ -25,6 +34,36 @@
     'rakuten', 'biglobe', 'goo.ne', 'search.smt.docomo', 'onet', 'kvasir', 'terra', 'rambler', 'conduit', 'babylon', 'search-results', 'avg', 'comcast', 'incredimail',
     'startsiden', 'go.mail.ru', 'centrum.cz', '360.cn', 'sogou', 'tut.by', 'globo', 'ukr', 'so.com', 'haosou.com', 'auone'
   ];
+
+
+   /**
+   * Returns the value of the chosen cookie.
+   * @param {string} cookieName
+   * @returns {string|Boolean}
+   */
+  function getCookie(cookieName){
+        var name = cookieName + "=";
+        var cookieArray = document.cookie.split(';'); //break cookie into array
+        for(var i = 0; i < cookieArray.length; i++){
+          var cookie = cookieArray[i].replace(/^\s+|\s+$/g, ''); //replace all space with '' = delete it
+          if (cookie.indexOf(name)==0){
+             return cookie.substring(name.length,cookie.length); //
+          }
+        }
+        return null;
+    } 
+   
+   /**
+   * Creates or overwrites a cookie with expiration date.
+   * @param {string} cname
+   * @param {string} cvalue
+   * @param {string} exDate
+   * @param {string} domain
+   * @returns {string|Boolean}
+   */
+function setCookie(cname, cvalue, exDate, domain) {
+    document.cookie = cname + "=" + cvalue + ";expires=" + exDate + ";path=/;domain="+ domain;
+}
 
   /**
    * Returns the host of a given URL
@@ -127,7 +166,8 @@
       var cleanReferrer = getHostByUrl(options.REFERRER);
 
       // We have a referrer! Check if the current site is also the referrer
-      if (cleanReferrer !== options.ITSELF) {
+      // Also check if the subdomain is a referrer 
+      if (cleanReferrer !== options.ITSELF && cleanReferrer !== subdomain ) {
         result.overwrite = true;
 
         // We check the referrer for special cases (like google, bing, yahoo, etc.)
@@ -148,20 +188,23 @@
   }
   window.trafficMonitor.getUtmData = getUtmData;
 
-  function updateCookies(cookieValue) {
+ function updateCookies(cookieValue) {
     var sessionExpire = 1800000; // milliseconds - 30 minutes
     var utmExpire = 1.5768e10; // milliseconds - ~6 months
     var session = new Date();
     var utm = new Date();
+    
+    domain = "toyota.com.tr";  // Change to whatever domain your going to create a cookie
+    subdomain = "turkiye.toyota.com.tr"; // Change with your subdomain that you want to exclude seeing as referral
 
     session.setTime(session.getTime() + sessionExpire);
     utm.setTime(utm.getTime() + utmExpire);
 
     // (Re)Create Cookies
-    $.cookie('__futm', cookieValue, { expires : utm, path : '/' });
-
+    setCookie('__futm', cookieValue, utm, domain)
+    
     // Restart Session
-    $.cookie('__futm_session', '', { expires : session, path : '/' });
+    setCookie('__futm_session', '', session, domain)
   }
 
   var options = {
@@ -179,11 +222,11 @@
 
   var utmCheck = getUtmData(options);
 
-  if (utmCheck.overwrite || $.cookie('__futm') === null) {
+  if (utmCheck.overwrite || getCookie('__futm') === null) {
     // Overwrite cases || FUTM cookie doesn't exists
     updateCookies(utmCheck.cookieValue);
   } else {
     // Keep the same cookie value but restart the expire dates
-    updateCookies($.cookie('__futm'));
+    updateCookies(getCookie('__futm'));
   }
 }(jQuery));
