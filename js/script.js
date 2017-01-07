@@ -5,7 +5,7 @@
 * $.cookie is depreciated so I replaced it with basic getCookie, setCookie functions.
 * Incase of reading the cookie values through the subdomains, added a domain variable to the updateCookie function. 
 * In my case I needed to set the cookie at toyota.com.tr then read it to pass along to CRM in turkiye.toyota.com.tr
-* 
+* Also turkiye.toyota.com.tr was showing up as a referral traffic, added a subdomain variable exclude that
 */
 
 
